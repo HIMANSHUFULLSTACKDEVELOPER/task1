@@ -1,0 +1,746 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Personal Productivity Hub</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 30%, #f093fb 70%, #f5576c 100%);
+            background-size: 400% 400%;
+            animation: gradientShift 12s ease infinite;
+            min-height: 100vh;
+            overflow-x: hidden;
+            position: relative;
+        }
+
+        body::before {
+            content: '';
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: radial-gradient(circle at 20% 50%, rgba(120, 119, 198, 0.3), transparent 50%),
+                        radial-gradient(circle at 80% 20%, rgba(255, 119, 198, 0.3), transparent 50%),
+                        radial-gradient(circle at 40% 80%, rgba(120, 219, 255, 0.3), transparent 50%);
+            pointer-events: none;
+            z-index: -2;
+        }
+
+        body::after {
+            content: '';
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: url('data:image/svg+xml,<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 100 100"><defs><pattern id="sparkles" width="20" height="20" patternUnits="userSpaceOnUse"><circle cx="5" cy="5" r="0.5" fill="white" opacity="0.3"/><circle cx="15" cy="15" r="0.3" fill="white" opacity="0.2"/><circle cx="10" cy="18" r="0.2" fill="white" opacity="0.4"/></pattern></defs><rect width="100%" height="100%" fill="url(%23sparkles)"/></svg>');
+            pointer-events: none;
+            z-index: -1;
+            animation: sparkleMove 20s linear infinite;
+        }
+
+        @keyframes gradientShift {
+            0%, 100% { background-position: 0% 50%; }
+            25% { background-position: 100% 50%; }
+            50% { background-position: 100% 100%; }
+            75% { background-position: 0% 100%; }
+        }
+
+        @keyframes sparkleMove {
+            0% { transform: translateX(0) translateY(0); }
+            100% { transform: translateX(-20px) translateY(-20px); }
+        }
+
+        .page {
+            display: none;
+            min-height: 100vh;
+            padding: 20px;
+        }
+
+        .page.active {
+            display: block;
+        }
+
+        /* Landing Page Styles */
+        .landing-container {
+            max-width: 1200px;
+            margin: 0 auto;
+            text-align: center;
+            padding: 60px 20px;
+        }
+
+        .hero-section {
+            margin-bottom: 80px;
+            animation: heroFadeIn 1.5s ease-out;
+        }
+
+        @keyframes heroFadeIn {
+            from { opacity: 0; transform: translateY(30px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+
+        .hero-title {
+            font-size: 4rem;
+            font-weight: 800;
+            background: linear-gradient(135deg, #fff 0%, #f8f9ff 50%, #fff 100%);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+            margin-bottom: 20px;
+            text-shadow: 0 0 30px rgba(255,255,255,0.5);
+            animation: titleGlow 3s ease-in-out infinite alternate;
+        }
+
+        @keyframes titleGlow {
+            from { filter: drop-shadow(0 0 20px rgba(255,255,255,0.3)); }
+            to { filter: drop-shadow(0 0 40px rgba(255,255,255,0.6)); }
+        }
+
+        .hero-subtitle {
+            font-size: 1.4rem;
+            color: rgba(255, 255, 255, 0.9);
+            margin-bottom: 15px;
+            text-shadow: 0 2px 10px rgba(0,0,0,0.3);
+        }
+
+        .hero-description {
+            font-size: 1.1rem;
+            color: rgba(255, 255, 255, 0.8);
+            max-width: 600px;
+            margin: 0 auto;
+            line-height: 1.6;
+            text-shadow: 0 1px 5px rgba(0,0,0,0.2);
+        }
+
+        .apps-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(350px, 1fr));
+            gap: 40px;
+            max-width: 800px;
+            margin: 0 auto;
+        }
+
+        .app-card {
+            background: rgba(255, 255, 255, 0.15);
+            backdrop-filter: blur(20px);
+            border: 1px solid rgba(255, 255, 255, 0.3);
+            border-radius: 25px;
+            padding: 40px 30px;
+            transition: all 0.5s cubic-bezier(0.4, 0, 0.2, 1);
+            cursor: pointer;
+            position: relative;
+            overflow: hidden;
+            animation: cardFloat 6s ease-in-out infinite;
+        }
+
+        .app-card:nth-child(2) {
+            animation-delay: -3s;
+        }
+
+        @keyframes cardFloat {
+            0%, 100% { transform: translateY(0px) rotate(0deg); }
+            33% { transform: translateY(-10px) rotate(0.5deg); }
+            66% { transform: translateY(5px) rotate(-0.5deg); }
+        }
+
+        .app-card::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: -100%;
+            width: 100%;
+            height: 100%;
+            background: linear-gradient(90deg, transparent, rgba(255,255,255,0.2), transparent);
+            transition: left 0.6s;
+        }
+
+        .app-card:hover::before {
+            left: 100%;
+        }
+
+        .app-card:hover {
+            transform: translateY(-15px) scale(1.05);
+            background: rgba(255, 255, 255, 0.25);
+            border-color: rgba(255, 255, 255, 0.5);
+            box-shadow: 
+                0 25px 50px rgba(0, 0, 0, 0.2),
+                0 0 0 1px rgba(255, 255, 255, 0.2) inset;
+        }
+
+        .app-icon {
+            font-size: 4rem;
+            margin-bottom: 20px;
+            display: block;
+            animation: iconBounce 2s ease-in-out infinite;
+        }
+
+        .app-card:nth-child(2) .app-icon {
+            animation-delay: -1s;
+        }
+
+        @keyframes iconBounce {
+            0%, 100% { transform: translateY(0px); }
+            50% { transform: translateY(-10px); }
+        }
+
+        .app-title {
+            font-size: 1.8rem;
+            font-weight: 700;
+            color: white;
+            margin-bottom: 15px;
+            text-shadow: 0 2px 10px rgba(0,0,0,0.3);
+        }
+
+        .app-description {
+            font-size: 1rem;
+            color: rgba(255, 255, 255, 0.9);
+            line-height: 1.6;
+            margin-bottom: 25px;
+            text-shadow: 0 1px 5px rgba(0,0,0,0.2);
+        }
+
+        .app-button {
+            background: linear-gradient(135deg, rgba(255,255,255,0.2) 0%, rgba(255,255,255,0.1) 100%);
+            border: 2px solid rgba(255, 255, 255, 0.3);
+            color: white;
+            padding: 12px 30px;
+            border-radius: 50px;
+            font-size: 1rem;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            backdrop-filter: blur(10px);
+            text-shadow: 0 1px 3px rgba(0,0,0,0.3);
+        }
+
+        .app-button:hover {
+            background: linear-gradient(135deg, rgba(255,255,255,0.3) 0%, rgba(255,255,255,0.2) 100%);
+            border-color: rgba(255, 255, 255, 0.6);
+            transform: translateY(-2px);
+            box-shadow: 0 5px 15px rgba(0,0,0,0.2);
+        }
+
+        /* Navigation Header */
+        .nav-header {
+            position: fixed;
+            top: 20px;
+            left: 50%;
+            transform: translateX(-50%);
+            background: rgba(255, 255, 255, 0.1);
+            backdrop-filter: blur(20px);
+            border: 1px solid rgba(255, 255, 255, 0.2);
+            border-radius: 50px;
+            padding: 15px 25px;
+            display: flex;
+            gap: 20px;
+            z-index: 1000;
+            animation: navSlideDown 1s ease-out 0.5s both;
+        }
+
+        @keyframes navSlideDown {
+            from { opacity: 0; transform: translateX(-50%) translateY(-20px); }
+            to { opacity: 1; transform: translateX(-50%) translateY(0); }
+        }
+
+        .nav-btn {
+            background: transparent;
+            border: 2px solid rgba(255, 255, 255, 0.3);
+            color: rgba(255, 255, 255, 0.8);
+            padding: 8px 20px;
+            border-radius: 25px;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            font-size: 0.9rem;
+            font-weight: 500;
+        }
+
+        .nav-btn.active,
+        .nav-btn:hover {
+            background: rgba(255, 255, 255, 0.2);
+            color: white;
+            border-color: rgba(255, 255, 255, 0.5);
+            transform: translateY(-1px);
+        }
+
+        /* App-specific styles */
+        .app-container {
+            max-width: 700px;
+            margin: 80px auto 0;
+            background: rgba(255, 255, 255, 0.95);
+            backdrop-filter: blur(20px);
+            border: 1px solid rgba(255, 255, 255, 0.2);
+            border-radius: 25px;
+            box-shadow: 
+                0 25px 45px rgba(0, 0, 0, 0.1),
+                0 0 0 1px rgba(255, 255, 255, 0.1) inset;
+            overflow: hidden;
+            animation: appSlideIn 0.8s ease-out;
+        }
+
+        @keyframes appSlideIn {
+            from { opacity: 0; transform: translateY(30px) scale(0.95); }
+            to { opacity: 1; transform: translateY(0) scale(1); }
+        }
+
+        .app-header {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 50%, #f093fb 100%);
+            color: white;
+            padding: 40px 30px;
+            text-align: center;
+            position: relative;
+            overflow: hidden;
+        }
+
+        .app-header::before {
+            content: '';
+            position: absolute;
+            top: -50%;
+            left: -50%;
+            width: 200%;
+            height: 200%;
+            background: linear-gradient(45deg, transparent, rgba(255,255,255,0.1), transparent);
+            animation: shimmer 3s linear infinite;
+        }
+
+        @keyframes shimmer {
+            0% { transform: translateX(-100%) translateY(-100%) rotate(45deg); }
+            100% { transform: translateX(100%) translateY(100%) rotate(45deg); }
+        }
+
+        .app-header h1 {
+            font-size: 2.5rem;
+            margin-bottom: 10px;
+            position: relative;
+            z-index: 1;
+            text-shadow: 0 2px 10px rgba(0,0,0,0.2);
+        }
+
+        .app-header p {
+            opacity: 0.95;
+            font-size: 1.1rem;
+            position: relative;
+            z-index: 1;
+            text-shadow: 0 1px 5px rgba(0,0,0,0.1);
+        }
+
+        /* Age Calculator Specific Styles */
+        .calc-section {
+            padding: 40px 30px;
+            text-align: center;
+        }
+
+        .date-input-group {
+            display: flex;
+            flex-direction: column;
+            gap: 20px;
+            max-width: 400px;
+            margin: 0 auto 30px;
+        }
+
+        .date-input {
+            padding: 15px 20px;
+            border: 2px solid rgba(102, 126, 234, 0.2);
+            border-radius: 15px;
+            font-size: 1.1rem;
+            outline: none;
+            transition: all 0.3s ease;
+            background: rgba(255, 255, 255, 0.9);
+        }
+
+        .date-input:focus {
+            border-color: #667eea;
+            box-shadow: 0 0 0 4px rgba(102, 126, 234, 0.1);
+            transform: translateY(-2px);
+        }
+
+        .calc-btn {
+            padding: 15px 40px;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            border: none;
+            border-radius: 15px;
+            font-size: 1.1rem;
+            font-weight: bold;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            margin-bottom: 30px;
+        }
+
+        .calc-btn:hover {
+            transform: translateY(-3px);
+            box-shadow: 0 10px 25px rgba(102, 126, 234, 0.4);
+        }
+
+        .result-display {
+            background: linear-gradient(135deg, rgba(102, 126, 234, 0.1) 0%, rgba(255, 255, 255, 0.8) 100%);
+            border-radius: 20px;
+            padding: 30px;
+            margin-top: 20px;
+            border: 1px solid rgba(102, 126, 234, 0.2);
+        }
+
+        .age-result {
+            font-size: 2rem;
+            font-weight: bold;
+            color: #667eea;
+            margin-bottom: 15px;
+        }
+
+        .age-details {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(120px, 1fr));
+            gap: 15px;
+            margin-top: 20px;
+        }
+
+        .age-detail {
+            background: rgba(255, 255, 255, 0.8);
+            padding: 15px;
+            border-radius: 12px;
+            text-align: center;
+            border: 1px solid rgba(102, 126, 234, 0.1);
+        }
+
+        .detail-number {
+            font-size: 1.5rem;
+            font-weight: bold;
+            color: #667eea;
+        }
+
+        .detail-label {
+            font-size: 0.9rem;
+            color: #6c757d;
+            margin-top: 5px;
+        }
+        a{
+            text-decoration: none;
+        }
+
+        @media (max-width: 768px) {
+            .hero-title {
+                font-size: 2.5rem;
+            }
+            
+            .apps-grid {
+                grid-template-columns: 1fr;
+                gap: 20px;
+            }
+            
+            .nav-header {
+                flex-wrap: wrap;
+                padding: 10px 15px;
+            }
+
+            .app-container {
+                margin: 80px 10px 0;
+            }
+        }
+    </style>
+</head>
+<body>
+  
+    <!-- Landing Page -->
+    <div id="landing" class="page active">
+        <div class="landing-container">
+            <div class="hero-section">
+                <h1 class="hero-title">✨ Assignment</h1>
+                <h2 class="hero-subtitle">Your Personal Digital Assistant</h2>
+                <p class="hero-description">
+                    Welcome to your all-in-one productivity suite! Calculate your age with precision 
+                    and organize your life with our enhanced to-do list manager.
+                </p>
+            </div>
+
+            <div class="apps-grid">
+                <div class="app-card" onclick="showPage('calculator')">
+                    <span class="app-icon">🎂</span>
+                    <h3 class="app-title">Age Calculator</h3>
+                    <p class="app-description">
+                        Discover your exact age in years, months, days, and more! 
+                        Perfect for birthdays, anniversaries, or just satisfying your curiosity.
+                    </p>
+                <a href="./age.html">    <button class="app-button"> <a href="./age.html">   Calculate Age → </a> </button>
+                </div>
+
+                <div class="app-card" onclick="showPage('todo')">
+                    <span class="app-icon">📝</span>
+                    <h3 class="app-title">Enhanced To-Do List</h3>
+                    <p class="app-description">
+                        Stay organized with our beautiful task manager featuring titles, 
+                        descriptions, and smart filtering to boost your productivity.
+                    </p>
+                    <button class="app-button"><a href="./todolist.html">Manage Tasks → </a></button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Age Calculator Page -->
+    <div id="calculator" class="page">
+        <div class="app-container">
+            <div class="app-header">
+                <h1>🎂 Age Calculator</h1>
+                <p>Calculate your exact age with precision!</p>
+            </div>
+            
+            <div class="calc-section">
+                <div class="date-input-group">
+                    <input type="date" id="birthDate" class="date-input" required>
+                    <label for="birthDate" style="color: #6c757d; font-size: 0.9rem;">Select your birth date</label>
+                </div>
+                
+                <button class="calc-btn" onclick="calculateAge()">Calculate My Age</button>
+                
+                <div id="ageResult" class="result-display" style="display: none;">
+                    <div id="mainAge" class="age-result"></div>
+                    <div id="ageBreakdown" class="age-details"></div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- To-Do List Page -->
+    <div id="todo" class="page">
+        <div class="app-container">
+            <div class="app-header">
+                <h1>📝 Enhanced To-Do List</h1>
+                <p>Stay organized with detailed tasks and descriptions!</p>
+            </div>
+
+            <div style="padding: 30px; background: linear-gradient(135deg, rgba(248, 249, 250, 0.9) 0%, rgba(255, 255, 255, 0.95) 100%);">
+                <form class="add-task-form" id="addTaskForm" style="display: flex; flex-direction: column; gap: 15px;">
+                    <input type="text" id="taskTitle" placeholder="Task title (required)" required 
+                           style="padding: 15px 20px; border: 2px solid rgba(102, 126, 234, 0.2); border-radius: 15px; font-size: 1.1rem; outline: none; transition: all 0.3s ease;">
+                    <textarea id="taskDescription" placeholder="Task description (optional)" rows="3" 
+                              style="padding: 15px 20px; border: 2px solid rgba(102, 126, 234, 0.2); border-radius: 15px; font-size: 1.1rem; outline: none; transition: all 0.3s ease; resize: vertical; font-family: inherit;"></textarea>
+                    <button type="submit" style="padding: 15px 30px; background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); color: white; border: none; border-radius: 15px; font-size: 1.1rem; font-weight: bold; cursor: pointer; align-self: flex-start;">Add Task</button>
+                </form>
+            </div>
+
+            <div style="padding: 20px 25px; background: #e9ecef; display: flex; justify-content: space-between; font-size: 0.9rem; color: #6c757d;">
+                <span>Total Tasks: <strong id="totalTasks">0</strong></span>
+                <span>Completed: <strong id="completedTasks">0</strong></span>
+                <span>Remaining: <strong id="remainingTasks">0</strong></span>
+            </div>
+
+            <div style="padding: 20px 25px; display: flex; gap: 10px; justify-content: center; background: #f8f9fa;">
+                <button class="filter-btn active" data-filter="all" onclick="setFilter('all')" style="padding: 8px 16px; border: 1px solid #667eea; background: #667eea; color: white; border-radius: 20px; cursor: pointer;">All</button>
+                <button class="filter-btn" data-filter="active" onclick="setFilter('active')" style="padding: 8px 16px; border: 1px solid #667eea; background: white; color: #667eea; border-radius: 20px; cursor: pointer;">Active</button>
+                <button class="filter-btn" data-filter="completed" onclick="setFilter('completed')" style="padding: 8px 16px; border: 1px solid #667eea; background: white; color: #667eea; border-radius: 20px; cursor: pointer;">Completed</button>
+            </div>
+
+            <div id="tasksContainer" style="padding: 25px; max-height: 500px; overflow-y: auto;">
+                <div id="emptyState" style="text-align: center; padding: 40px 20px; color: #6c757d;">
+                    <h3 style="margin-bottom: 10px; font-size: 1.5rem;">🎯 No tasks yet!</h3>
+                    <p>Add your first task above to get started.</p>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // Global variables
+        let currentPage = 'landing';
+        let tasks = [];
+        let currentFilter = 'all';
+        let editingTaskId = null;
+
+        // Navigation function
+        function showPage(pageId) {
+            // Hide all pages
+            document.querySelectorAll('.page').forEach(page => {
+                page.classList.remove('active');
+            });
+            
+            // Show selected page
+            document.getElementById(pageId).classList.add('active');
+            
+            // Update navigation buttons
+            document.querySelectorAll('.nav-btn').forEach(btn => {
+                btn.classList.remove('active');
+            });
+            event.target.classList.add('active');
+            
+            currentPage = pageId;
+            
+            // Initialize page-specific functionality
+            if (pageId === 'todo') {
+                renderTasks();
+            }
+        }
+
+        // Age Calculator Functions
+        function calculateAge() {
+            const birthDate = document.getElementById('birthDate').value;
+            if (!birthDate) {
+                alert('Please select your birth date');
+                return;
+            }
+
+            const birth = new Date(birthDate);
+            const today = new Date();
+            
+            if (birth > today) {
+                alert('Birth date cannot be in the future');
+                return;
+            }
+
+            // Calculate age
+            let years = today.getFullYear() - birth.getFullYear();
+            let months = today.getMonth() - birth.getMonth();
+            let days = today.getDate() - birth.getDate();
+
+            if (days < 0) {
+                months--;
+                days += new Date(today.getFullYear(), today.getMonth(), 0).getDate();
+            }
+
+            if (months < 0) {
+                years--;
+                months += 12;
+            }
+
+            // Calculate additional details
+            const totalDays = Math.floor((today - birth) / (1000 * 60 * 60 * 24));
+            const totalHours = totalDays * 24;
+            const totalMinutes = totalHours * 60;
+            const nextBirthday = new Date(today.getFullYear(), birth.getMonth(), birth.getDate());
+            if (nextBirthday < today) {
+                nextBirthday.setFullYear(today.getFullYear() + 1);
+            }
+            const daysToNextBirthday = Math.ceil((nextBirthday - today) / (1000 * 60 * 60 * 24));
+
+            // Display results
+            document.getElementById('mainAge').textContent = `${years} years, ${months} months, ${days} days old`;
+            
+            document.getElementById('ageBreakdown').innerHTML = `
+                <div class="age-detail">
+                    <div class="detail-number">${years}</div>
+                    <div class="detail-label">Years</div>
+                </div>
+                <div class="age-detail">
+                    <div class="detail-number">${totalDays.toLocaleString()}</div>
+                    <div class="detail-label">Total Days</div>
+                </div>
+                <div class="age-detail">
+                    <div class="detail-number">${totalHours.toLocaleString()}</div>
+                    <div class="detail-label">Total Hours</div>
+                </div>
+                <div class="age-detail">
+                    <div class="detail-number">${totalMinutes.toLocaleString()}</div>
+                    <div class="detail-label">Total Minutes</div>
+                </div>
+                <div class="age-detail">
+                    <div class="detail-number">${daysToNextBirthday}</div>
+                    <div class="detail-label">Days to Next Birthday</div>
+                </div>
+            `;
+            
+            document.getElementById('ageResult').style.display = 'block';
+        }
+
+        // To-Do List Functions
+        function generateId() {
+            return Date.now().toString(36) + Math.random().toString(36).substr(2);
+        }
+
+        function addTask() {
+            const titleInput = document.getElementById('taskTitle');
+            const descriptionInput = document.getElementById('taskDescription');
+            const title = titleInput.value.trim();
+            const description = descriptionInput.value.trim();
+            
+            if (title === '') return;
+
+            const newTask = {
+                id: generateId(),
+                title: title,
+                description: description,
+                completed: false,
+                createdAt: new Date().toISOString()
+            };
+
+            tasks.unshift(newTask);
+            renderTasks();
+            titleInput.value = '';
+            descriptionInput.value = '';
+        }
+
+        function toggleTask(id) {
+            const task = tasks.find(t => t.id === id);
+            if (task) {
+                task.completed = !task.completed;
+                renderTasks();
+            }
+        }
+
+        function deleteTask(id) {
+            tasks = tasks.filter(t => t.id !== id);
+            renderTasks();
+        }
+
+        function setFilter(filter) {
+            currentFilter = filter;
+            document.querySelectorAll('.filter-btn').forEach(btn => {
+                btn.classList.remove('active');
+                if (btn.dataset.filter === filter) {
+                    btn.classList.add('active');
+                    btn.style.background = '#667eea';
+                    btn.style.color = 'white';
+                } else {
+                    btn.style.background = 'white';
+                    btn.style.color = '#667eea';
+                }
+            });
+            renderTasks();
+        }
+
+        function getFilteredTasks() {
+            switch (currentFilter) {
+                case 'active':
+                    return tasks.filter(task => !task.completed);
+                case 'completed':
+                    return tasks.filter(task => task.completed);
+                default:
+                    return tasks;
+            }
+        }
+
+        function formatDate(dateString) {
+            const date = new Date(dateString);
+            return date.toLocaleDateString() + ' at ' + date.toLocaleTimeString([], {hour: '2-digit', minute:'2-digit'});
+        }
+
+        function renderTasks() {
+            const container = document.getElementById('tasksContainer');
+            const emptyState = document.getElementById('emptyState');
+            const filteredTasks = getFilteredTasks();
+
+            // Update stats
+            document.getElementById('totalTasks').textContent = tasks.length;
+            document.getElementById('completedTasks').textContent = tasks.filter(t => t.completed).length;
+            document.getElementById('remainingTasks').textContent = tasks.filter(t => !t.completed).length;
+
+            if (filteredTasks.length === 0) {
+                container.innerHTML = '';
+                container.appendChild(emptyState);
+                return;
+            }
+
+            container.innerHTML = '';
+            
+            filteredTasks.forEach(task => {
+                const taskElement = document.createElement('div');
+                taskElement.style.cssText = `
+                    display: flex; flex-direction: column; padding: 25px; margin-bottom: 20px;
+                    background: linear-gradient(135deg, rgba(248, 249, 250, 0.9) 0%, rgba(255, 255, 255, 0.95) 100%);
+                    backdrop-filter: blur
